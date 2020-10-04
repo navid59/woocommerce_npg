@@ -17,7 +17,7 @@ DEFINE ('NTP_AGGREMENT_PLUGIN_DIR', plugins_url( basename( plugin_dir_path( __FI
 include_once( 'wc-netopiapayments-agreement.php' );
 $ntpAgreement = new NetopiapaymentsAgreement();
 
-@wp_enqueue_script( 'netopia_payments_agreement', plugin_dir_url( __FILE__ ) . 'js/netopia_payments_agreement.js',array('jquery'),'1.0' ,true);
+@wp_enqueue_script( 'netopia_payments_agreement', plugin_dir_url( __FILE__ ) . 'js/netopia_payments_agreement.js',array('jquery'),'2.0' ,true);
 wp_localize_script( 'netopia_payments_agreement', 'checkAddress_ajax', array( 'ajax_url' => admin_url( 'admin-ajax.php' )));
 
 @wp_enqueue_script( 'netopia_payments_agreement_toastrjs', plugin_dir_url( __FILE__ ) . 'js/toastr.min.js',array(),'2.0' ,true);
@@ -28,6 +28,9 @@ add_action( 'wp_ajax_nopriv_check_url_validation','check_url_validation');
 
 add_action( 'wp_ajax_ssl_validation','ssl_validation');
 add_action( 'wp_ajax_nopriv_ssl_validation','ssl_validation');
+
+add_action( 'wp_ajax_golive_validation','golive_validation');
+add_action( 'wp_ajax_nopriv_golive_validation','golive_validation');
 
 function check_url_validation() {
     $temp = false;
@@ -68,7 +71,60 @@ function ssl_validation() {
     wp_die();
 }
 
-$ntpAgreement->getNetopiaOptions();
+function golive_validation() {
+
+    $agreements = array(
+        'declaration',
+        'forbidden',
+        'terms_conditions',
+        'privacy_policy',
+        'delivery_policy',
+        'return_cancel',
+        'gdpr',
+        'visa_logo',
+        'master_logo',
+        'netopia_logo',
+        'ssl'
+    );
+
+    $ntpInstance = new NetopiapaymentsAgreement();
+
+    $domtree = new \DOMDocument('1.0', 'UTF-8');
+    $domtree->formatOutput = true;
+    $xmlRoot = $domtree->createElement("xml");
+    $xmlRoot = $domtree->appendChild($xmlRoot);
+
+    $sac_key = $domtree->createElement("sac_key", get_option($ntpInstance->getSlug().'_seller_account'));
+    $sac_key = $xmlRoot->appendChild($sac_key);
+    $agr = $domtree->createElement("agrremnts");
+    $agr = $xmlRoot->appendChild($agr);
+
+    foreach ($agreements as $agreement) {
+        switch ($agreement) {
+            case "declaration":
+            case "forbidden":
+                $declarations = get_option( $ntpInstance->getSlug().'_'.$agreement );
+                foreach ($declarations as $declarItem) {
+                    $agr->appendChild($domtree->createElement($declarItem,1));
+                }
+                break;
+            default:
+                $agr->appendChild($domtree->createElement($agreement,get_option( $ntpInstance->getSlug().'_'.$agreement ) ? get_option( $ntpInstance->getSlug().'_'.$agreement ) : 'null'));
+                break;
+        }
+    }
+
+    $last_update = $domtree->createElement("last_update", date("Y/m/d H:i:s"));
+    $last_update = $xmlRoot->appendChild($last_update);
+
+    $last_update = $domtree->createElement("platform", 'wordpress_'.$ntpInstance->getVersion());
+    $last_update = $xmlRoot->appendChild($last_update);
+
+    $result = $domtree->save($ntpInstance->getPluginPath().'agreements.xml') ? true : false;
+    echo $result;
+    wp_die();
+}
+
 /**
  * For Logo in Footer , ...
  * <img src="https://netopia-system.com/12345/">

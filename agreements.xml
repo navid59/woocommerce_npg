@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <sac_key>XXXX-YYYY-ZZZZ-KKKK-HHHH</sac_key>
+  <agrremnts>
+    <declaration_description>1</declaration_description>
+    <declaration_price_currency>1</declaration_price_currency>
+    <declaration_contact_info>1</declaration_contact_info>
+    <declaration_forbidden_business>1</declaration_forbidden_business>
+    <terms_conditions>trerm_condiftion,html</terms_conditions>
+    <privacy_policy>term.html</privacy_policy>
+    <delivery_policy>null</delivery_policy>
+    <return_cancel>cancel.html</return_cancel>
+    <gdpr>null</gdpr>
+    <visa_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</visa_logo>
+    <master_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</master_logo>
+    <netopia_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</netopia_logo>
+    <ssl>maybe</ssl>
+  </agrremnts>
+  <last_update>2020/10/04 16:52:42</last_update>
+  <platform>wordpress_5.5.1</platform>
+</xml>

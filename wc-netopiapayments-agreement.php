@@ -1,7 +1,7 @@
 <?php
 class NetopiapaymentsAgreement
 {
-    protected $page_title = 'NETOPIA Agreements Check List';
+    protected $page_title = 'NETOPIA Payments Woocommerce Payment Gateway Plugin';
     protected $menu_title = 'NETOPIA';
     protected $slug = 'netopia_agreement';
     private $options;
@@ -12,6 +12,18 @@ class NetopiapaymentsAgreement
     add_action( 'admin_init', array( $this, 'setup_agreement_fields' ) );
 
 
+    }
+
+    public function getSlug(){
+        return $this->slug;
+    }
+
+    public function getPluginPath() {
+        return plugin_dir_path( __FILE__ );
+    }
+
+    public function getVersion() {
+        return get_bloginfo( 'version' );
     }
 
     public function create_plugin_settings() {
@@ -25,15 +37,32 @@ class NetopiapaymentsAgreement
     }
 
     public function dashbord() {
+        settings_errors();
+        @$active_tab = $_GET[ 'tab' ] ? $_GET[ 'tab' ] : null;
         ?>
         <div class="wrap">
-            <h2><?=$this->page_title ?></h2>
+            <div class="row">
+                <img src="https://suport.mobilpay.ro/np-logo-blue.svg" width="150" style="padding: 20px 25px 0px 0px;">
+                <span style="font-size: xx-large"><?=$this->page_title ?></span>
+            </div>
+            <h2 class="nav-tab-wrapper">
+                <a href="?page=netopia_agreement&tab=display_setting" class="nav-tab <?php echo $active_tab == 'display_setting' ? 'nav-tab-active' : ''; ?>">NETOPIA Payments Setting</a>
+                <a href="?page=netopia_agreement&tab=display_agreements" class="nav-tab <?php echo $active_tab == 'display_agreements' ? 'nav-tab-active' : ''; ?>">NETOPIA Payments Agreements</a>
+            </h2>
             <form method="post" action="options.php">
 
                 <?php
-                settings_fields( 'netopia_agreement' );
-                do_settings_sections( 'netopia_agreement' );
-                submit_button();
+                if( $active_tab == 'display_agreements' ) {
+                    settings_fields( 'netopia_agreement' );
+                    do_settings_sections( 'netopia_agreement' );
+                    submit_button();
+                }elseif($active_tab == 'display_setting') {
+                    echo "Hello Setting";
+                } else {
+                    require_once ('welcomepage.html');
+                }
+
+
 
                 ?>
             </form>
@@ -48,6 +77,7 @@ class NetopiapaymentsAgreement
         add_settings_section( 'urls', 'Links', array( $this, 'section_callback' ), 'netopia_agreement' );
         add_settings_section( 'img', 'Mandatory images', array( $this, 'section_callback' ), 'netopia_agreement' );
         add_settings_section( 'ssl', 'SSL certification', array( $this, 'section_callback' ), 'netopia_agreement' );
+        add_settings_section( 'cerere', 'Send Request to NETOPIA Payments', array( $this, 'section_callback' ), 'netopia_agreement' );
     }
 
     public function setup_agreement_fields() {
@@ -202,6 +232,17 @@ class NetopiapaymentsAgreement
                 'helper' => '',
                 'supplemental' => '',
                 'default' => 'maybe'
+            ),
+            array(
+                'uid' => $this->slug.'ask_netopia',
+                'label' => '',
+                'section' => 'cerere',
+                'type' => 'send_request',
+                'options' => false,
+                'placeholder' => '',
+                'helper' => '',
+                'supplemental' => '',
+                'default' => ''
             )
         );
         foreach( $fields as $field ){
@@ -227,6 +268,12 @@ class NetopiapaymentsAgreement
                 break;
             case 'img':
                 echo '';
+                break;
+            case 'cerere':
+                echo '<spam style="padding-right: 20px;" >By clicking on <strong>Ask for Go Live Verification</strong> 
+                        <br> send request to NETOPIA Payments support team to review your request&nbsp;&nbsp;&nbsp;';
+                echo '<br>Or from your Admin Panel in NETOPIA Payments , switch on LIVE mode</spam>';
+                printf('<button type="button" id="askGoLive_verify" class="button button-primary">%1$s</button>', 'Ask for Go Live Verification');
                 break;
         }
     }
@@ -291,6 +338,9 @@ class NetopiapaymentsAgreement
                 printf( '<input name="%1$s" id="%1$s" type="%2$s" placeholder="%3$s" value="%4$s" />', $arguments['uid'], $arguments['type'], $arguments['placeholder'], $value );
                 printf('<button type="button" id="%2$s_verify" class="button button-primary">%1$s</button>', 'check', $arguments['uid']);
                 break;
+            case 'send_request': // Ask NETOPIA Payments
+                //
+                break;
         }
 
         // If there is help text
@@ -304,64 +354,4 @@ class NetopiapaymentsAgreement
         }
     }
 
-    public function sslCertificate() {
-        $serverName = "https://www.netopia-system.com";
-//        $serverName =   $_SERVER['HTTP_HOST'];
-
-        $stream = stream_context_create (array("ssl" => array("capture_peer_cert" => true)));
-        $read   = @fopen($serverName, "rb", false, $stream);
-        $cont   = @stream_context_get_params($read);
-        $var    = @($cont["options"]["ssl"]["peer_certificate"]);
-        $result = (!is_null($var)) ? true : false;
-        return $result;
-    }
-
-    public function getNetopiaOptions() {
-        $agreements = array(
-                'declaration',
-                'forbidden',
-                'terms_conditions',
-                'privacy_policy',
-                'delivery_policy',
-                'return_cancel',
-                'gdpr',
-                'visa_logo',
-                'master_logo',
-                'netopia_logo',
-                'ssl'
-        );
-
-        $domtree = new DOMDocument('1.0', 'UTF-8');
-        $domtree->formatOutput = true;
-
-        $xmlRoot = $domtree->createElement("xml");
-        $xmlRoot = $domtree->appendChild($xmlRoot);
-
-        $sac_key = $domtree->createElement("sac_key", get_option($this->slug.'_seller_account'));
-        $sac_key = $xmlRoot->appendChild($sac_key);
-
-        $agr = $domtree->createElement("agrremnts");
-        $agr = $xmlRoot->appendChild($agr);
-
-        foreach ($agreements as $agreement) {
-            switch ($agreement) {
-                case "declaration":
-                case "forbidden":
-                    $declarations = get_option( $this->slug.'_'.$agreement );
-                    foreach ($declarations as $declarItem) {
-                        $agr->appendChild($domtree->createElement($declarItem,1));
-                    }
-                    break;
-                default:
-                    $agr->appendChild($domtree->createElement($agreement,get_option( $this->slug.'_'.$agreement )));
-                    break;
-            }
-        }
-
-        $last_update = $domtree->createElement("last_update", date("Y/m/d H:i:s"));
-        $last_update = $xmlRoot->appendChild($last_update);
-
-        $domtree->save('agreements.xml');
-        ///
-    }
 }
