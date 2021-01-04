@@ -5,17 +5,16 @@
     <declaration_description>1</declaration_description>
     <declaration_price_currency>1</declaration_price_currency>
     <declaration_contact_info>1</declaration_contact_info>
-    <declaration_forbidden_business>1</declaration_forbidden_business>
-    <terms_conditions>trerm_condiftion,html</terms_conditions>
+    <terms_conditions>trerm_condiftion.html</terms_conditions>
     <privacy_policy>term.html</privacy_policy>
-    <delivery_policy>null</delivery_policy>
+    <delivery_policy>delivery.html</delivery_policy>
     <return_cancel>cancel.html</return_cancel>
-    <gdpr>null</gdpr>
+    <gdpr>gdpr.html</gdpr>
     <visa_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</visa_logo>
     <master_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</master_logo>
     <netopia_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</netopia_logo>
-    <ssl>maybe</ssl>
+    <ssl>yes</ssl>
   </agrremnts>
-  <last_update>2020/10/04 17:19:19</last_update>
+  <last_update>2021/01/04 13:49:40</last_update>
   <platform>wordpress_5.5.1</platform>
 </xml>

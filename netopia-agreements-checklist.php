@@ -32,6 +32,9 @@ add_action( 'wp_ajax_nopriv_ssl_validation','ssl_validation');
 add_action( 'wp_ajax_golive_validation','golive_validation');
 add_action( 'wp_ajax_nopriv_golive_validation','golive_validation');
 
+add_action( 'wp_ajax_send_agreement','send_agreement');
+add_action( 'wp_ajax_nopriv_send_agreement','send_agreement');
+
 function check_url_validation() {
     $temp = false;
     if($_POST['address'] && is_string($_POST['address']) && preg_match('/^http(s)?:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $_POST['address'])){
@@ -57,7 +60,11 @@ function check_url_validation() {
     wp_die();
 }
 
-function ssl_validation() {
+/**
+ * to check if web site has valid SSl Certificate
+ * @param $toSend is define to display or retuen ssl status
+ */
+function ssl_validation($toSend = false) {
     $temp = false;
     $serverName =   'http://netopia-system.com';
 //    $serverName =   $_SERVER['HTTP_HOST'];
@@ -67,12 +74,85 @@ function ssl_validation() {
     $var    = @($cont["options"]["ssl"]["peer_certificate"]);
     $result = (!is_null($var)) ? true : false;
     $response = json_encode($result);
-    echo $response;
+    if(!$toSend)
+        echo $response;
+    else
+        return $response;
     wp_die();
 }
 
-function golive_validation() {
+/**
+ * Send agreement Json
+ */
+function send_agreement() {
+    
+    $ntpInstance = new NetopiapaymentsAgreement();
+    $sacKey = get_option($ntpInstance->getSlug().'_seller_account');
+    $declarations = get_option( $ntpInstance->getSlug().'_'.'declaration' ); // get all declaration (declarations are checkbox)
+    $forbiddens = get_option( $ntpInstance->getSlug().'_'.'forbidden' ); // get all forbiddens (forbiddens are checkbox)
+    
+    $ntpDeclare = array (
+        'completeDescription' => (bool) in_array("declaration_description", $declarations) ? true : false,
+        'priceCurrency' =>  (bool) in_array("declaration_price_currency", $declarations) ? true : false,
+        'contactInfo' =>  (bool) in_array("declaration_contact_info", $declarations) ? true : false,
+        'forbiddenBusiness' =>  (bool) in_array("declaration_forbidden_business", $forbiddens) ? true : false
+      );
 
+    
+    // echo "<pre>";
+    // print_r($ntpDeclare);
+    // echo "</pre><hr>";
+
+    $ntpUrl = array(
+        'termsAndConditions' => get_option( $ntpInstance->getSlug().'_'.'terms_conditions' ),
+        'privacyPolicy' => get_option( $ntpInstance->getSlug().'_'.'privacy_policy' ),
+        'deliveryPolicy' => get_option( $ntpInstance->getSlug().'_'.'delivery_policy' ),
+        'returnAndCancelPolicy' => get_option( $ntpInstance->getSlug().'_'.'return_cancel' ),
+        'gdprPolicy' => get_option( $ntpInstance->getSlug().'_'.'gdpr' )
+        );
+
+    
+    $ntpImg = array(
+        'visaLogoLink' => get_option( $ntpInstance->getSlug().'_'.'visa_logo' ),
+        'masterLogoLink' => get_option( $ntpInstance->getSlug().'_'.'master_logo' ),
+        'netopiaLogoLink' => get_option( $ntpInstance->getSlug().'_'.'netopia_logo' )
+    );
+
+
+    $jsonData = makeActivateJson($sacKey, $ntpDeclare, $ntpUrl, $ntpImg);
+
+    // echo "---- Jason Without Encrypt ----".PHP_EOL;
+    // print_r($this->jsonData);
+
+    die(print_r($jsonData));
+    
+    
+    
+
+}
+
+function makeActivateJson($sacKey, $declareatins, $urls, $images) {
+    $jsonData = array(
+      "sac_key" => $sacKey,
+      "agreements" => array(
+            "declare" => $declareatins,
+            "urls"    => $urls,
+            "images"  => $images,
+            "ssl"     => ssl_validation(true)
+          ),
+      "lastUpdate" => date("c", strtotime(date("Y-m-d H:i:s"))), // To have Date & Time format on RFC3339
+      "platform" => 'Woocomerce'
+    );
+    
+    $post_data = json_encode($jsonData, JSON_FORCE_OBJECT);
+    return $post_data;
+  }
+
+/**
+ * Create a local agreement.xml 
+ */
+function golive_validation() {
+    
     $agreements = array(
         'declaration',
         'forbidden',
@@ -121,11 +201,10 @@ function golive_validation() {
     $last_update = $xmlRoot->appendChild($last_update);
 
     $result = $domtree->save($ntpInstance->getPluginPath().'agreements.xml') ? true : false;
+    if($result)
+        echo "Agrrement saved localy!";
+    else
+        echo "Agrrement could not save localy!!";    
     echo $result;
     wp_die();
 }
-
-/**
- * For Logo in Footer , ...
- * <img src="https://netopia-system.com/12345/">
- */

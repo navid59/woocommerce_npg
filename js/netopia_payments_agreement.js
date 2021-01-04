@@ -68,3 +68,22 @@ $("#askGoLive_verify").on('click', function (){
         }
     })
 })
+
+
+$("#sendToVerify").on('click', function (){
+    $.ajax({
+        url: checkAddress_ajax.ajax_url,
+        method: 'POST',
+        dataType: 'json',
+        data: {
+            action:'send_agreement',
+        },
+        success: function (response) {
+            if(response == false) {
+                toastr.error("Your request is not sent!!!");
+            } else {
+                toastr.success("Your Request is sent");
+            }
+        }
+    })
+})

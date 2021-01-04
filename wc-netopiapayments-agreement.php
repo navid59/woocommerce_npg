@@ -1,7 +1,7 @@
 <?php
 class NetopiapaymentsAgreement
 {
-    protected $page_title = 'NETOPIA Payments Woocommerce Payment Gateway Plugin';
+    protected $page_title = 'NETOPIA Payments - Woocommerce';
     protected $menu_title = 'NETOPIA';
     protected $slug = 'netopia_agreement';
     private $options;
@@ -50,7 +50,6 @@ class NetopiapaymentsAgreement
                 <a href="?page=netopia_agreement&tab=display_agreements" class="nav-tab <?php echo $active_tab == 'display_agreements' ? 'nav-tab-active' : ''; ?>">NETOPIA Payments Agreements</a>
             </h2>
             <form method="post" action="options.php">
-
                 <?php
                 if( $active_tab == 'display_agreements' ) {
                     settings_fields( 'netopia_agreement' );
@@ -273,7 +272,9 @@ class NetopiapaymentsAgreement
                 echo '<spam style="padding-right: 20px;" >By clicking on <strong>Ask for Go Live Verification</strong> 
                         <br> send request to NETOPIA Payments support team to review your request&nbsp;&nbsp;&nbsp;';
                 echo '<br>Or from your Admin Panel in NETOPIA Payments , switch on LIVE mode</spam>';
-                printf('<button type="button" id="askGoLive_verify" class="button button-primary">%1$s</button>', 'Ask for Go Live Verification');
+                printf('<button type="button" id="askGoLive_verify" class="button button-primary">%1$s</button>', 'Keep xml localy!!!');
+                echo "&nbsp;";
+                printf('<button type="button" id="sendToVerify" class="button button-primary">%1$s</button>', 'Send to Verify');
                 break;
         }
     }
