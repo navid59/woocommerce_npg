@@ -123,11 +123,19 @@ function send_agreement() {
 
     // echo "---- Jason Without Encrypt ----".PHP_EOL;
     // print_r($this->jsonData);
-
-    die(print_r($jsonData));
+    // print_r($jsonData);
+    // die(print_r(getCertificateDir()));
     
+    $encryptData = encrypt($jsonData);
     
+    $encData = array(
+        'env_key' => $encryptData['EnvKey'],
+        'data'    => $encryptData['EncData']
+    );
     
+    // print_r($encryptData);
+    $sendFeedback = sendJsonCurl($encData);
+    die(print_r($sendFeedback));
 
 }
 
@@ -148,6 +156,116 @@ function makeActivateJson($sacKey, $declareatins, $urls, $images) {
     return $post_data;
   }
 
+  function getCertificateDir(){
+      return dirname(__FILE__)."/certificates/live.N3WW-989W-DG43-SVPN-7ASE.public.cer";
+  }
+  
+  function encrypt($jsonData)
+  {
+    $x509FilePath = getCertificateDir();
+    $publicKey = openssl_pkey_get_public("file://{$x509FilePath}");
+    if($publicKey === false)
+      {
+        $outEncData = null;
+        $outEnvKey  = null;
+        $errorMessage = "Error while loading X509 public key certificate! Reason:";
+        while(($errorString = openssl_error_string()))
+        {
+          $errorMessage .= $errorString . "\n";
+        }
+        throw new \Exception($errorMessage, 'ERROR_LOAD_X509_CERTIFICATE');
+      }
+    $srcData = $jsonData;
+    $publicKeys = array($publicKey);
+    $encData  = null;
+    $envKeys  = null;
+    $result   = openssl_seal($srcData, $encData, $envKeys, $publicKeys);
+
+    if($result === false)
+      {
+        $outEncData = null;
+        $outEnvKey  = null;
+        $errorMessage = "Error while encrypting data! Reason:";
+        while(($errorString = openssl_error_string()))
+        {
+          $errorMessage .= $errorString . "\n";
+        }
+        throw new Exception($errorMessage, 'ERROR_ENCRYPT_DATA');
+      }
+    $outEncData = base64_encode($encData);
+    $outEnvKey  = base64_encode($envKeys[0]);
+
+    return(array("EnvKey"=> $outEnvKey, "EncData"=> $outEncData));
+
+  }
+
+
+  function sendJsonCurl($encData) {
+    // $url = 'https://netopia-payments-user-service-api-fqvtst6pfa-ez.a.run.app/user/verify';
+    $url = 'https://netopia-payments-user-service-api-fqvtst6pfa-ew.a.run.app/financial/agreement/add2';
+    $ch = curl_init($url);
+
+    $payload = json_encode($encData);
+
+    // Attach encoded JSON string to the POST fields
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+    // Set the content type to application/json
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+
+    // Return response instead of outputting
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    // Execute the POST request
+    $result = curl_exec($ch);
+
+    if (!curl_errno($ch)) {
+          switch ($http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
+              case 200:  # OK
+                  $arr = array(
+                      'code'    => $http_code,
+                      'message' => "You send your request, successfully",
+                      'data'    => json_decode($result)
+                  );
+                  break;
+              case 404:  # Not Found
+                  $arr = array(
+                      'code'    => $http_code,
+                      'message' => "You send request to wrong URL"
+                  );
+                  break;
+              case 400:  # Bad Request
+                  $arr = array(
+                      'code'    => $http_code,
+                      'message' => "You send Bad Request"
+                  );
+                  break;
+              case 405:  # Method Not Allowed
+                  $arr = array(
+                      'code'    => $http_code,
+                      'message' => "Your method of sending data are Not Allowed"
+                  );
+                  break;
+              default:
+                  $arr = array(
+                      'code'    => $http_code,
+                      'message' => "Opps! Something happened, verify how you send data & try again!!!"
+                  );
+          }
+      } else {
+          $arr = array(
+              'code'    => 0,
+              'message' => "Opps! There is some problem, you are not able to send data!!!"
+          );
+      }
+    
+    // Close cURL resource
+    curl_close($ch);
+    
+    $finalResult = json_encode($arr, JSON_FORCE_OBJECT);
+    return $finalResult;
+  }
+  
 /**
  * Create a local agreement.xml 
  */

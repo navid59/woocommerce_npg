@@ -57,6 +57,7 @@ class NetopiapaymentsAgreement
                     submit_button();
                 }elseif($active_tab == 'display_setting') {
                     echo "Hello Setting";
+                    // submit_button();
                 } else {
                     require_once ('welcomepage.html');
                 }

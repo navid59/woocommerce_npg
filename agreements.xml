@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xml>
-  <sac_key>XXXX-YYYY-ZZZZ-KKKK-HHHH</sac_key>
+  <sac_key>N3WW-989W-DG43-SVPN-7ASE</sac_key>
   <agrremnts>
     <declaration_description>1</declaration_description>
     <declaration_price_currency>1</declaration_price_currency>
@@ -15,6 +15,6 @@
     <netopia_logo>http://woocommerce.test/wp-content/uploads/2020/02/cropped-logo.png</netopia_logo>
     <ssl>yes</ssl>
   </agrremnts>
-  <last_update>2021/01/04 13:49:40</last_update>
+  <last_update>2021/01/04 15:00:31</last_update>
   <platform>wordpress_5.5.1</platform>
 </xml>
