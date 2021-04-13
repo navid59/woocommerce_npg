@@ -1,4 +1,7 @@
 <?php
+/**
+ * Agreemnets Section
+ */
 class NetopiapaymentsAgreement
 {
     protected $page_title = 'NETOPIA Payments - Woocommerce';

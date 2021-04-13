@@ -135,7 +135,7 @@ function send_agreement() {
     
     // print_r($encryptData);
     $sendFeedback = sendJsonCurl($encData);
-    die(print_r($sendFeedback));
+    die($sendFeedback);
 
 }
 
